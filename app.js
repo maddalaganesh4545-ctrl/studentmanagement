@@ -1127,39 +1127,39 @@ function renderStudentsTable() {
             : Math.min(100, student.attendance + 2);
             
         const row = document.createElement('tr');
-        row.className = 'border-b border-slate-100 hover:bg-slate-50/50 transition-colors';
+        row.className = 'border-b border-slate-100 hover:bg-slate-50/50 transition-colors whitespace-nowrap';
         row.innerHTML = `
-            <td class="px-4 py-3 text-sm font-semibold text-slate-800">${student.id}</td>
-            <td class="px-4 py-3 text-sm font-medium text-slate-700">${student.name}</td>
-            <td class="px-4 py-3 text-sm text-slate-600">${student.class}</td>
-            <td class="px-4 py-3 text-sm text-slate-600">${student.parent}</td>
-            <td class="px-4 py-3 text-sm text-slate-500">${student.phone}</td>
-            <td class="px-4 py-3 text-sm text-center">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+            <td class="px-4 py-3 text-sm font-semibold text-slate-800 whitespace-nowrap font-mono">${student.id}</td>
+            <td class="px-4 py-3 text-sm font-medium text-slate-700 whitespace-nowrap">${student.name}</td>
+            <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">${student.class}</td>
+            <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">${student.parent}</td>
+            <td class="px-4 py-3 text-sm text-slate-500 whitespace-nowrap font-mono">${student.phone}</td>
+            <td class="px-4 py-3 text-sm text-center whitespace-nowrap">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap ${
                     student.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                 }">
                     ${student.status}
                 </span>
             </td>
-            <td class="px-4 py-3 text-sm text-center font-medium ${attendanceVal >= 90 ? 'text-emerald-600' : 'text-amber-600'}">${attendanceVal}%</td>
-            <td class="px-4 py-3 text-xs">
-                <div class="space-y-1">
-                    <div class="flex items-center space-x-1.5">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ID:</span>
-                        <span class="font-mono font-bold text-seablue-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200 text-[11px] select-all">${student.id}</span>
-                    </div>
-                    <div class="flex items-center space-x-1.5">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PW:</span>
-                        <span class="font-mono font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-[11px] select-all" title="Password (Date of Birth)">${student.dob || '2010-01-01'}</span>
-                    </div>
+            <td class="px-4 py-3 text-sm text-center font-medium whitespace-nowrap ${attendanceVal >= 90 ? 'text-emerald-600' : 'text-amber-600'}">${attendanceVal}%</td>
+            <td class="px-4 py-3 text-xs whitespace-nowrap">
+                <div class="inline-flex items-center space-x-2 whitespace-nowrap">
+                    <span class="inline-flex items-center space-x-1 bg-sky-50 px-2 py-0.5 rounded border border-sky-200 whitespace-nowrap">
+                        <span class="text-[10px] font-bold text-sky-700 uppercase tracking-wider">ID:</span>
+                        <span class="font-mono font-bold text-seablue-700 text-[11px] select-all">${student.id}</span>
+                    </span>
+                    <span class="inline-flex items-center space-x-1 bg-slate-100 px-2 py-0.5 rounded border border-slate-200 whitespace-nowrap">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">PW:</span>
+                        <span class="font-mono font-semibold text-slate-700 text-[11px] select-all" title="Password (Date of Birth)">${student.dob || '2010-01-01'}</span>
+                    </span>
                 </div>
             </td>
-            <td class="px-4 py-3 text-sm text-center space-x-1.5 font-semibold">
-                <button onclick="openStudentProfileModal('${student.id}')" class="px-2 py-1 text-xs font-semibold text-seablue-600 hover:bg-sky-50 border border-seablue-200 rounded transition-colors inline-flex items-center">
+            <td class="px-4 py-3 text-sm text-center space-x-1.5 font-semibold whitespace-nowrap">
+                <button onclick="openStudentProfileModal('${student.id}')" class="px-2.5 py-1 text-xs font-semibold text-seablue-600 hover:bg-sky-50 border border-seablue-200 rounded transition-colors inline-flex items-center whitespace-nowrap">
                     <i class="fa-regular fa-eye mr-1"></i> View/Edit
                 </button>
                 ${student.status === 'Pending' ? `
-                <button onclick="collectFeeForStudent('${student.id}')" title="Collect Fee" class="px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 border border-emerald-250 rounded transition-colors inline-flex items-center">
+                <button onclick="collectFeeForStudent('${student.id}')" title="Collect Fee" class="px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 border border-emerald-200 rounded transition-colors inline-flex items-center whitespace-nowrap">
                     <i class="fa-solid fa-wallet"></i>
                 </button>` : ''}
             </td>
