@@ -719,8 +719,8 @@ function autoFillLoginCredentials(role) {
         emailInput.value = 'staff@edusphere.edu';
         passInput.value = 'password123';
     } else if (role === 'Student') {
-        emailInput.value = 'student@edusphere.edu';
-        passInput.value = 'student123';
+        emailInput.value = 'ADM-2026-0042';
+        passInput.value = '2010-05-15';
     }
 }
 
@@ -736,22 +736,45 @@ function setLoginPreset(role) {
 function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('login-email').value.trim();
-    const roleSelect = document.getElementById('login-role').value;
+    let roleSelect = document.getElementById('login-role') ? document.getElementById('login-role').value : 'Admin';
     
+    // Check if logging in as Student via Admission ID or role
+    const isStudentLogin = roleSelect === 'Student' || 
+                           email.toUpperCase().startsWith('ADM-') || 
+                           (state.students && state.students.some(s => s.id.toLowerCase() === email.toLowerCase()));
+
     // Simulate user login
     state.isLoggedIn = true;
-    state.currentUser.username = email.split('@')[0] || 'admin';
-    state.currentUser.role = roleSelect;
-    if (roleSelect === 'Admin' || roleSelect === 'Super Admin') {
+    
+    if (isStudentLogin) {
+        roleSelect = 'Student';
+        state.currentUser.role = 'Student';
+        const matchedStudent = state.students && state.students.find(s => 
+            s.id.toLowerCase() === email.toLowerCase() || 
+            (s.email && s.email.toLowerCase() === email.toLowerCase())
+        );
+        if (matchedStudent) {
+            state.currentUser.name = matchedStudent.name;
+            state.currentUser.studentId = matchedStudent.id;
+            state.currentUser.class = matchedStudent.class;
+            state.currentUser.username = matchedStudent.id;
+        } else {
+            state.currentUser.name = 'Amit Sharma';
+            state.currentUser.studentId = 'ADM-2026-0042';
+            state.currentUser.class = 'Grade 11 - Science';
+            state.currentUser.username = 'ADM-2026-0042';
+        }
+    } else if (roleSelect === 'Admin' || roleSelect === 'Super Admin') {
+        state.currentUser.username = email.split('@')[0] || 'admin';
+        state.currentUser.role = 'Admin';
         state.currentUser.name = 'Alex Mercer';
     } else if (roleSelect === 'Principal') {
+        state.currentUser.username = email.split('@')[0] || 'principal';
+        state.currentUser.role = 'Principal';
         state.currentUser.name = 'Dr. Sarah Jenkins';
-    } else if (roleSelect === 'Student') {
-        state.currentUser.name = 'Amit Sharma';
-        state.currentUser.studentId = 'ADM-2026-0042';
-        state.currentUser.class = 'Grade 11 - Science';
     } else {
         // Staff role: Match against registered faculty
+        state.currentUser.role = 'Staff';
         const matchedFaculty = state.faculty && state.faculty.find(f => 
             (f.username && f.username.toLowerCase() === email.toLowerCase()) || 
             (f.email && f.email.toLowerCase() === email.toLowerCase()) ||
@@ -762,6 +785,7 @@ function handleLogin(e) {
             state.currentUser.username = matchedFaculty.username || matchedFaculty.email;
         } else {
             state.currentUser.name = 'Marcus Hyland';
+            state.currentUser.username = 'marcus.hyland';
         }
     }
     
@@ -1118,6 +1142,18 @@ function renderStudentsTable() {
                 </span>
             </td>
             <td class="px-4 py-3 text-sm text-center font-medium ${attendanceVal >= 90 ? 'text-emerald-600' : 'text-amber-600'}">${attendanceVal}%</td>
+            <td class="px-4 py-3 text-xs">
+                <div class="space-y-1">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ID:</span>
+                        <span class="font-mono font-bold text-seablue-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-200 text-[11px] select-all">${student.id}</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PW:</span>
+                        <span class="font-mono font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-[11px] select-all" title="Password (Date of Birth)">${student.dob || '2010-01-01'}</span>
+                    </div>
+                </div>
+            </td>
             <td class="px-4 py-3 text-sm text-center space-x-1.5 font-semibold">
                 <button onclick="openStudentProfileModal('${student.id}')" class="px-2 py-1 text-xs font-semibold text-seablue-600 hover:bg-sky-50 border border-seablue-200 rounded transition-colors inline-flex items-center">
                     <i class="fa-regular fa-eye mr-1"></i> View/Edit
