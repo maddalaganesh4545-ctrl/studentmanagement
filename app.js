@@ -4340,11 +4340,9 @@ function renderOnlineExamsModule() {
     const userRole = state.currentUser.role;
     
     // Auto-select intuitive default sub-tab by role
-    if (userRole === 'Principal' && (state.onlineExamSubTab === 'catalog' || state.onlineExamSubTab === 'myexams')) {
-        state.onlineExamSubTab = 'moderation';
-    } else if (userRole === 'Student' && (state.onlineExamSubTab === 'catalog' || state.onlineExamSubTab === 'moderation')) {
+    if (userRole === 'Student' && (state.onlineExamSubTab === 'catalog' || state.onlineExamSubTab === 'moderation')) {
         state.onlineExamSubTab = 'myexams';
-    } else if ((userRole === 'Staff' || userRole === 'Admin' || userRole === 'Super Admin') && (state.onlineExamSubTab === 'myexams' || state.onlineExamSubTab === 'myscorecards')) {
+    } else if ((userRole === 'Staff' || userRole === 'Principal' || userRole === 'Admin' || userRole === 'Super Admin') && (state.onlineExamSubTab === 'myexams' || state.onlineExamSubTab === 'myscorecards')) {
         state.onlineExamSubTab = 'catalog';
     }
 
@@ -4361,20 +4359,12 @@ function renderOnlineExamsModule() {
                     <span>Create Online Exam</span>
                 </button>
             `;
-        } else if (userRole === 'Staff') {
+        } else if (userRole === 'Staff' || userRole === 'Principal') {
             topActions.innerHTML = `
                 <button onclick="openCreateOnlineExamModal()" class="px-4 py-2 bg-seablue-600 hover:bg-seablue-700 text-white font-semibold rounded-lg text-xs shadow transition flex items-center space-x-1.5">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>Create Online Exam</span>
                 </button>
-            `;
-        } else if (userRole === 'Principal') {
-            const pendingCount = state.onlineExams.filter(e => e.status === 'Pending_Approval').length;
-            topActions.innerHTML = `
-                <span class="px-3.5 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-bold flex items-center space-x-1.5 shadow-sm">
-                    <i class="fa-solid fa-bell animate-pulse text-amber-600"></i>
-                    <span>${pendingCount} Awaiting Principal Go-Live</span>
-                </span>
             `;
         } else if (userRole === 'Student') {
             topActions.innerHTML = `
@@ -4401,21 +4391,6 @@ function renderOnlineExamsModule() {
                         </div>
                     </div>
                     <span class="hidden sm:inline-block px-3 py-1 bg-white/20 rounded-full text-[11px] font-bold text-white uppercase tracking-wider">Student Portal</span>
-                </div>
-            `;
-        } else if (userRole === 'Principal') {
-            const pendingCount = state.onlineExams.filter(e => e.status === 'Pending_Approval').length;
-            roleBanner.innerHTML = `
-                <div class="bg-amber-50/90 border border-amber-200 p-4 rounded-xl text-amber-900 flex items-center justify-between shadow-sm">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-lg">
-                            <i class="fa-solid fa-stamp"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold">Principal Executive Moderation & Result Publishing Authority</h3>
-                            <p class="text-xs text-amber-700">All auto-graded exams remain quarantined until your review. You currently have <strong>${pendingCount}</strong> examination(s) awaiting approval.</p>
-                        </div>
-                    </div>
                 </div>
             `;
         } else {
