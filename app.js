@@ -3953,7 +3953,7 @@ function renderFacultyList() {
         const initials = nameParts.map(p => p[0]).join('').substring(0, 2).toUpperCase();
         
         const card = document.createElement('div');
-        card.className = 'bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4';
+        card.className = 'bg-white p-6 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow';
         card.innerHTML = `
             <div class="flex items-start justify-between">
                 <div class="flex items-center space-x-3">
@@ -3963,7 +3963,10 @@ function renderFacultyList() {
                         <p class="text-xs text-slate-500 font-medium">${member.role}</p>
                     </div>
                 </div>
-                <span class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">Active</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                    (member.status || 'Active') === 'Active' ? 'bg-emerald-50 text-emerald-700' :
+                    (member.status === 'On Leave' ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-600')
+                }">${member.status || 'Active'}</span>
             </div>
             <div class="border-t border-slate-100 pt-4 space-y-1.5 text-xs text-slate-600">
                 <p><i class="fa-solid fa-book mr-2 text-slate-400"></i> Work: ${member.assignment}</p>
@@ -3971,11 +3974,106 @@ function renderFacultyList() {
                 <p><i class="fa-solid fa-envelope mr-2 text-slate-400"></i> ${member.email}</p>
                 <p><i class="fa-solid fa-user-shield mr-2 text-slate-400"></i> Login ID: <span class="font-mono text-[11px] font-semibold text-seablue-700 bg-sky-50 px-2 py-0.5 rounded">${member.username || member.email.split('@')[0]}</span></p>
             </div>
-            <button onclick="alert('Viewing employee record for ${member.name}')" class="w-full py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-semibold transition">View HR Profile</button>
+            <button onclick="openEditFacultyModal('${member.id}')" class="w-full py-2 border border-seablue-200 bg-sky-50/40 hover:bg-sky-50 text-seablue-700 rounded-lg text-xs font-semibold transition flex items-center justify-center space-x-1.5 shadow-sm">
+                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                <span>Edit Profile</span>
+            </button>
         `;
         grid.appendChild(card);
     });
 }
+
+function openEditFacultyModal(facultyId) {
+    const member = state.faculty.find(f => f.id === facultyId);
+    if (!member) {
+        alert('Faculty member not found!');
+        return;
+    }
+
+    const idInput = document.getElementById('edit-fac-id');
+    const badgeEl = document.getElementById('edit-fac-badge-id');
+    const nameInput = document.getElementById('edit-fac-name');
+    const roleInput = document.getElementById('edit-fac-role');
+    const accountTypeSelect = document.getElementById('edit-fac-account-type');
+    const assignInput = document.getElementById('edit-fac-assign');
+    const phoneInput = document.getElementById('edit-fac-phone');
+    const emailInput = document.getElementById('edit-fac-email');
+    const useridInput = document.getElementById('edit-fac-userid');
+    const statusSelect = document.getElementById('edit-fac-status');
+
+    if (idInput) idInput.value = member.id;
+    if (badgeEl) badgeEl.innerText = `Employee ID: ${member.id}`;
+    if (nameInput) nameInput.value = member.name || '';
+    if (roleInput) roleInput.value = member.role || '';
+    if (accountTypeSelect) accountTypeSelect.value = member.accountType || 'Staff';
+    if (assignInput) assignInput.value = member.assignment || '';
+    if (phoneInput) phoneInput.value = member.phone || '';
+    if (emailInput) emailInput.value = member.email || '';
+    if (useridInput) useridInput.value = member.username || (member.email ? member.email.split('@')[0] : '');
+    if (statusSelect) statusSelect.value = member.status || 'Active';
+
+    const modal = document.getElementById('edit-faculty-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeEditFacultyModal() {
+    const modal = document.getElementById('edit-faculty-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function handleUpdateFaculty(e) {
+    e.preventDefault();
+    const id = document.getElementById('edit-fac-id').value;
+    const member = state.faculty.find(f => f.id === id);
+    if (!member) {
+        alert('Faculty member not found!');
+        return;
+    }
+
+    const oldUsername = member.username || (member.email ? member.email.split('@')[0] : '');
+
+    member.name = document.getElementById('edit-fac-name').value.trim();
+    member.role = document.getElementById('edit-fac-role').value.trim();
+    member.accountType = document.getElementById('edit-fac-account-type').value;
+    member.assignment = document.getElementById('edit-fac-assign').value.trim();
+    member.phone = document.getElementById('edit-fac-phone').value.trim();
+    member.email = document.getElementById('edit-fac-email').value.trim();
+    member.username = document.getElementById('edit-fac-userid').value.trim() || member.email.split('@')[0];
+    member.status = document.getElementById('edit-fac-status').value;
+
+    // Update matching security user if present
+    if (state.securityUsers) {
+        const secUser = state.securityUsers.find(u => u.username === oldUsername || u.name === member.name);
+        if (secUser) {
+            secUser.name = member.name;
+            secUser.username = member.username;
+            secUser.role = member.accountType;
+            secUser.status = member.status;
+            if (typeof renderSecurityUsers === 'function') {
+                renderSecurityUsers();
+            }
+        }
+    }
+
+    // Re-render faculty cards
+    renderFacultyList();
+
+    // Log activity
+    logActivity('Faculty Profile Updated', `Updated details for ${member.name} (${member.id})`);
+
+    // Close modal
+    closeEditFacultyModal();
+
+    alert(`Success: ${member.name}'s profile has been updated!`);
+}
+
+window.openEditFacultyModal = openEditFacultyModal;
+window.closeEditFacultyModal = closeEditFacultyModal;
+window.handleUpdateFaculty = handleUpdateFaculty;
 
 function saveFaculty(e) {
     e.preventDefault();
