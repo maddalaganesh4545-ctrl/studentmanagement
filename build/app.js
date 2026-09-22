@@ -811,15 +811,38 @@ function handleLogin(e) {
 function applyRoleAccessControl(role) {
     const navItems = document.querySelectorAll('.nav-item');
     
-    // Define tab accessibility maps (Admin has no exams, attendance, timetable, or fleet)
+    // Complete list of all operational modules in the system
+    const allSystemTabs = [
+        'dashboard', 
+        'setup', 
+        'students', 
+        'faculty', 
+        'timetable', 
+        'attendance', 
+        'fees', 
+        'exams', 
+        'online-exams', 
+        'certificates', 
+        'reports', 
+        'audit', 
+        'settings', 
+        'data', 
+        'library', 
+        'transport', 
+        'hostel', 
+        'hr'
+    ];
+    
+    // Define tab accessibility maps
     const roleTabs = {
-        'Admin': ['dashboard', 'setup', 'students', 'faculty', 'fees', 'certificates', 'reports', 'audit', 'settings'],
-        'Principal': ['dashboard', 'students', 'faculty', 'timetable', 'attendance', 'exams', 'online-exams', 'certificates', 'reports', 'library', 'transport', 'hostel'],
+        'Admin': allSystemTabs,
+        'Super Admin': allSystemTabs,
+        'Principal': allSystemTabs, // Display all options in Principal login for testing as requested
         'Staff': ['dashboard', 'students', 'fees', 'exams', 'online-exams', 'certificates', 'reports', 'library', 'transport', 'hostel', 'data'],
         'Student': ['online-exams', 'certificates']
     };
     
-    const allowedTabs = roleTabs[role] || (role === 'Super Admin' ? roleTabs['Admin'] : null) || roleTabs['Admin'];
+    const allowedTabs = roleTabs[role] || (role === 'Super Admin' ? roleTabs['Admin'] : null) || allSystemTabs;
     
     // Show/hide sidebar nav items based on role permission
     navItems.forEach(item => {
@@ -850,19 +873,12 @@ function applyRoleAccessControl(role) {
     
     const financeOverview = document.getElementById('finance-overview-cards');
     
-    if (role === 'Admin' || role === 'Super Admin') {
+    if (role === 'Admin' || role === 'Super Admin' || role === 'Principal') {
         if (csvImportBtn) csvImportBtn.classList.remove('hidden');
         if (enrollStudentBtn) enrollStudentBtn.classList.remove('hidden');
         if (addFacultyBtn) addFacultyBtn.classList.remove('hidden');
         if (addClassBtn) addClassBtn.classList.remove('hidden');
         if (addSubjectBtn) addSubjectBtn.classList.remove('hidden');
-        if (financeOverview) financeOverview.classList.remove('hidden');
-    } else if (role === 'Principal') {
-        if (csvImportBtn) csvImportBtn.classList.add('hidden');
-        if (enrollStudentBtn) enrollStudentBtn.classList.remove('hidden');
-        if (addFacultyBtn) addFacultyBtn.classList.add('hidden');
-        if (addClassBtn) addClassBtn.classList.add('hidden');
-        if (addSubjectBtn) addSubjectBtn.classList.add('hidden');
         if (financeOverview) financeOverview.classList.remove('hidden');
     } else if (role === 'Staff') {
         if (csvImportBtn) csvImportBtn.classList.remove('hidden');
@@ -1904,13 +1920,12 @@ function initializeSecurityMatrix() {
             state.securityPermissionsMatrix[key] = {};
         }
         securityModules.forEach(mod => {
-            if (!state.securityPermissionsMatrix[key][mod]) {
+            if (!state.securityPermissionsMatrix[key][mod] || isPrincipal) {
                 state.securityPermissionsMatrix[key][mod] = {};
                 securityActions.forEach(act => {
                     if (isPrincipal) {
-                        const principalModules = ['Dashboard', 'Students', 'Admissions', 'Faculty', 'Classes & Sections', 'Course Subjects', 'Timetable', 'Attendance', 'Exams', 'Online Assessments', 'Grading & Marks', 'Certificate Management', 'Library', 'Reports Center', 'Audit Trail'];
-                        const isAllowed = ['View', 'Create', 'Edit', 'Print', 'Approve', 'Export'].includes(act);
-                        state.securityPermissionsMatrix[key][mod][act] = principalModules.includes(mod) && isAllowed;
+                        // All permissions enabled for Principal testing as requested
+                        state.securityPermissionsMatrix[key][mod][act] = true;
                     } else {
                         const isAcademic = ['Dashboard', 'Students', 'Faculty', 'Timetable', 'Attendance', 'Exams', 'Online Assessments', 'Results', 'Certificate Management', 'Library', 'Reports'].includes(mod);
                         const isReadWrite = ['View', 'Create', 'Edit', 'Print'].includes(act);
@@ -2057,15 +2072,22 @@ function renderGranularPermissionMatrix() {
     if (!state.securityPermissionsMatrix[facultyKey]) {
         state.securityPermissionsMatrix[facultyKey] = {};
     }
+    const member = state.faculty && state.faculty.find(f => (f.id === facultyKey || f.name === facultyKey));
+    const isPrincipal = member && (member.accountType === 'Principal' || (member.role && member.role.toLowerCase().includes('principal')) || (member.name && member.name.toLowerCase().includes('sarah jenkins')));
+
     securityModules.forEach(mod => {
         if (!state.securityPermissionsMatrix[facultyKey][mod]) {
             state.securityPermissionsMatrix[facultyKey][mod] = {};
-            securityActions.forEach(act => {
+        }
+        securityActions.forEach(act => {
+            if (isPrincipal) {
+                state.securityPermissionsMatrix[facultyKey][mod][act] = true;
+            } else if (state.securityPermissionsMatrix[facultyKey][mod][act] === undefined) {
                 const isAcademic = ['Dashboard', 'Students', 'Faculty', 'Timetable', 'Attendance', 'Exams', 'Online Assessments', 'Results', 'Library', 'Reports'].includes(mod);
                 const isReadWrite = ['View', 'Create', 'Edit', 'Print'].includes(act);
                 state.securityPermissionsMatrix[facultyKey][mod][act] = isAcademic && isReadWrite;
-            });
-        }
+            }
+        });
     });
     const matrix = state.securityPermissionsMatrix[facultyKey];
     
